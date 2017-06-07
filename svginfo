@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#-#################################################
+#- Svg information quick look
+#- Version: 0.0.1
+#- Usage:
+#-      > svginfo <file.svg>
+#-      > svginfo <commands>
+#-        commands: --help | -help | -h | -?
+## Author: aimingoo
+## Web: https://github.com/aimingoo/svginfo
+#-#################################################
+
+## commands or --help
+for param; do
+        if [ "$param" == "--help" -o "$param" == "-help" -o "$param" == "-h" -o "$param" == "-?" ]; then
+                head -n 20 "$0" | grep -Ee '^#-' | sed 's/^#-//'
+                exit
+        fi
+done
+
+function svginfo() {
+	local width; local height; local viewBox;
+	local zoomAndPan=magnify; local preserveAspectRatio=none;
+	while read -r DEF; do declare "${DEF//[\"\']/}"; done < <(\
+		xmllint --noblanks "$1" |\
+		grep -om1 '<svg[^>]*>' |\
+		grep -Eoe "(width|height|viewBox|preserveAspectRatio|zoomAndPan)\s*=\s*([\"'])[^\"']+\2"\
+	)
+	printf "width: %s\nheight: %s\nviewBox: %s\nzoomAndPan: %s\npreserveAspectRatio: %s\n"\
+		$width $height "$viewBox" $zoomAndPan "$preserveAspectRatio"
+}
+
+[ -f "$1" ] && svginfo "$1"
